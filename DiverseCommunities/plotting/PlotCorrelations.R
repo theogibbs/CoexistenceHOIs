@@ -143,12 +143,53 @@ plEigs
 layout_mat <- rbind(c(1, rep(2, times = 10), 3, 3, rep(4, times = 10), 5, 5, rep(6, times = 10)),
                    c(rep(7, times = 35)))
 
-grid.arrange(plEmpty, plA, plPlus, plB, plEqual, plJ, plEigs,
-             layout_matrix = layout_mat)
+plExamplePart <- grid.arrange(plEmpty, plA, plPlus, plB, plEqual, plJ, plEigs,
+                              layout_matrix = layout_mat)
+
+########################################################
+# Plotting the simulations with correlations between
+# pairwise and higher-order interactions
+########################################################
+
+# Loading dependencies
+
+source("./Functions.R")
+
+# Plotting script
+
+out_data <- read_csv2("simdata/SimCorr.csv")
+
+summ_data <- out_data %>%
+  dplyr::group_by(MuA, SigmaA, p) %>%
+  dplyr::summarise(ProbStable = mean(Stable)) %>%
+  dplyr::mutate(MuA = case_when(MuA == 0 ~ "Zero Mean",
+                                MuA < 0 ~ "Facilitative Mean",
+                                MuA > 0 ~ "Competitive Mean")) %>%
+  dplyr::mutate(MuA = factor(MuA, levels = c("Facilitative Mean", "Zero Mean", "Competitive Mean")))
+
+plConstrainedB <- ggplot(summ_data, aes(x = p, y = ProbStable,
+                                        color = as.factor(SigmaA),
+                                        shape = as.factor(SigmaA))) +
+  geom_line(linewidth = 0.5, alpha = 0.5) +
+  geom_point(alpha = 1, size = 3) +
+  theme_classic() +
+  facet_wrap(~MuA) +
+  labs(x = expression("Correlation Strength"~(p)),
+       y = "Probability of Stability",
+       color = "Variation in Pairwise Interactions",
+       shape = "Variation in Pairwise Interactions") +
+  theme(text = element_text(size=15),
+        legend.position = "top",
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  scale_color_viridis(discrete = TRUE, option = "H")
+show(plConstrainedB)
 
 jpeg("../CoexistenceHOIs-Paper/figs/Fig4Correlations.jpeg",
-     width = 3200, height = 2000, res = 300)
-
-grid.arrange(plEmpty, plA, plPlus, plB, plEqual, plJ, plEigs,
-             layout_matrix = layout_mat)
+     width = 3500, height = 3250, res = 300)
+grid.arrange(plExamplePart, plConstrainedB,
+             layout_matrix = matrix(c(rep(1, times = 2), 2)), nrow = 3, ncol = 1)
 dev.off()

@@ -9,7 +9,7 @@ source("./DiverseCommunities/DiverseCommunityFunctions.R")
 
 ### Simulation script
 
-S <- 5
+S <- 20
 mu_R <- 1
 sigma_R <- 0
 mu_D <- 1
@@ -39,7 +39,7 @@ in_pars <- crossing(S = S,
                     scaling = scaling,
                     DistB = dist_B)
 
-abundance_vals <- seq(0.01, 3.5, length.out = 10)
+abundance_vals <- seq(0.01, 1.99, length.out = 10)
 
 num_repl <- 100
 in_pars <- bind_rows(replicate(num_repl, in_pars, simplify = FALSE))
@@ -57,7 +57,7 @@ for(cur_row in 1:nrow(in_pars)) {
     
     target_abd <- GetTargetAbd(pars = cur_pars, choice = "Specified", value = abd_val)
     
-    cur_pars$B <- GetConstrainedB(target_abd, cur_pars)
+    cur_pars$B <- GetFeasibleB(target_abd, cur_pars)
     
     J <- BuildJacobian(eq_abd = target_abd, pars = cur_pars)
     

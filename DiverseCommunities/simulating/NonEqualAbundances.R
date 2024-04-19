@@ -9,7 +9,7 @@ source("./DiverseCommunities/DiverseCommunityFunctions.R")
 
 ### Simulation script
 
-S <- 5
+S <- 20
 mu_R <- 1
 sigma_R <- 0
 mu_D <- 1
@@ -39,7 +39,7 @@ in_pars <- crossing(S = S,
                     scaling = scaling,
                     DistB = dist_B)
 
-abundance_noise <- seq(0, 1, length.out = 10)
+abundance_noise <- seq(0, 0.75, length.out = 10)
 
 num_repl <- 100
 in_pars <- bind_rows(replicate(num_repl, in_pars, simplify = FALSE))
@@ -55,9 +55,12 @@ for(cur_row in 1:nrow(in_pars)) {
   
   for(cur_noise in abundance_noise) {
     
-    target_abd <- GetTargetAbd(pars = cur_pars, choice = "Carrying Capacities", value = cur_noise)
+    target_abd <- GetTargetAbd(pars = cur_pars,
+                               choice = "Carrying Capacities",
+                               value = cur_noise)
     
-    cur_pars$B <- GetConstrainedB(target_abd, cur_pars)
+    #cur_pars$B <- GetConstrainedB(target_abd, cur_pars)
+    cur_pars$B <- GetNonEqualFeasibleB(target_abd, cur_pars)
     
     J <- BuildJacobian(eq_abd = target_abd, pars = cur_pars)
     

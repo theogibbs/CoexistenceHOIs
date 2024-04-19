@@ -12,6 +12,8 @@ library(nleqslv)
 library(grid)
 library(gridExtra)
 library(RColorBrewer)
+library(sads)
+library(viridis)
 
 # Functions
 
@@ -90,9 +92,10 @@ BuildA <- function(S = 100, mu = 0, sigma = 0.1, rho = 0){
 
 GetTargetAbd <- function(pars, choice = "Carrying Capacities", value = 0, min_val = 1e-2) {
   if(choice == "Carrying Capacities") {
-    target_abd <- unique(rep(pars$r / diag(pars$A)))
-    target_abd <- target_abd + rnorm(pars$S, mean = 0, sd = value)
-    target_abd[target_abd < 0] <- min_val
+    car_cap <- unique(rep(pars$r / diag(pars$A)))
+    target_abd <- car_cap + rnorm(pars$S, mean = 0, sd = value)
+    target_abd[target_abd <= 0] <- min_val
+    target_abd <- target_abd / mean(target_abd) * car_cap
   } else if(choice == "Specified") {
     target_abd <- rep(value, times = pars$S)
   } else if(choice == "Pairwise + Noise") {
@@ -106,7 +109,32 @@ GetTargetAbd <- function(pars, choice = "Carrying Capacities", value = 0, min_va
       target_abd[target_abd < 1e-7] <- -1
     }
     target_abd <- target_abd + rnorm(pars$S, mean = 0, sd = value)
-    target_abd[target_abd < 0] <- min_val
+    target_abd[target_abd <= 0] <- min_val
+  } else if(choice == "Log Normal") {
+    target_abd <- rlnorm(n = pars$S, sdlog = value)
+    car_cap <- unique(rep(pars$r / diag(pars$A)))
+    target_abd[target_abd <= 0] <- min_val
+    target_abd <- target_abd / mean(target_abd) * car_cap
+  } else if(choice == "Poisson Log Normal") {
+    car_cap <- unique(rep(pars$r / diag(pars$A)))
+    target_abd <- rpoilog(n = pars$S, mu = car_cap, sig = value)
+    target_abd[target_abd <= 0] <- min_val
+    target_abd <- target_abd / mean(target_abd) * car_cap
+  } else if(choice == "Log Series") {
+    car_cap <- unique(rep(pars$r / diag(pars$A)))
+    target_abd <- rls(n = pars$S, N = 10 * pars$S, alpha = 1 / value)
+    target_abd[target_abd <= 0] <- min_val
+    target_abd <- target_abd / mean(target_abd) * car_cap
+  } else if(choice == "Geometric Series") {
+    car_cap <- unique(rep(pars$r / diag(pars$A)))
+    target_abd <- rgs(n = pars$S, k = 1 - value, S = pars$S)
+    target_abd[target_abd <= 0] <- min_val
+    target_abd <- target_abd / mean(target_abd) * car_cap
+  } else if(choice == "Zipf") {
+    car_cap <- unique(rep(pars$r / diag(pars$A)))
+    target_abd <- rzipf(n = pars$S, N = 100 * pars$S, s = 5 - 3 * value)
+    target_abd[target_abd <= 0] <- min_val
+    target_abd <- target_abd / mean(target_abd) * car_cap
   }
   return(target_abd)
 }

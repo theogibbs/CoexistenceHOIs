@@ -41,6 +41,7 @@ in_pars <- crossing(S = S,
 pars <- BuildPars(in_pars)
 
 target_abd <- c(0.1, 0.2, 0.9, 0.8)
+#target_abd <- rep(1, times = 4)
 
 B <- GetFeasibleB(target_abd, pars)
 pars$B <- B
@@ -48,7 +49,8 @@ out_Bs <- matrix(0, nrow = 0, ncol = pars$S^2)
 
 for(k in 1:100) {
   
-  out_B <- GetConstrainedB(target_abd, pars)
+  #out_B <- GetConstrainedB(target_abd, pars)
+  out_B <- GetNonEqualFeasibleB(target_abd, pars)
   # need to merge all these data into one reasonable format over the for loop
   out_Bs <- rbind(out_Bs, out_B)
 }

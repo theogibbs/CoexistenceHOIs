@@ -126,6 +126,125 @@ GetFeasibleB <- function(abd, pars) {
   return(B)
 }
 
+GetNonEqualFeasibleB <- function(abd, pars) {
+  B <- with(pars, {
+    total_B <- r - A %*% abd
+    
+    num_uniq <- choose(S - 1, 2)
+    opt_vals <- rdirichlet(S, alpha = rep(1, times = num_uniq))
+    
+    B <- array(0, c(S, S, S))
+    for(i in 1:S) {
+      
+      inds <- crossing(j = 1:S, k = 1:S) %>%
+        filter(j != k) %>%
+        filter(j != i) %>%
+        filter(k != i) %>%
+        filter(j < k)
+      
+      for(cur_row in 1:nrow(inds)) {
+        cur_inds <- inds[cur_row,]
+        B[i, cur_inds$j, cur_inds$k] <- opt_vals[i, cur_row]
+      }
+      
+    }
+    
+    outer_abds <- as.vector(outer(abd, abd))
+    outer_mat <- diag(1 / outer_abds, nrow = S^2, ncol = S^2)
+    B <- matrix(as.vector(B), nrow = S, ncol = S^2) %*% outer_mat
+    B <- B * as.vector(total_B)
+    return(B)
+  })
+  return(B)
+}
+
+GetEqualAcrossRowsFeasibleB <- function(abd, pars) {
+  B <- with(pars, {
+    total_B <- r - A %*% abd
+    
+    num_uniq <- choose(S - 1, 2)
+    
+    B <- array(0, c(S, S, S))
+    for(i in 1:S) {
+      
+      inds <- crossing(j = 1:S, k = 1:S) %>%
+        filter(j != k) %>%
+        filter(j != i) %>%
+        filter(k != i) %>%
+        filter(j < k)
+      
+      for(cur_row in 1:nrow(inds)) {
+        cur_inds <- inds[cur_row,]
+        B[i, cur_inds$j, cur_inds$k] <- 1
+      }
+      
+    }
+    
+    outer_abds <- as.vector(outer(abd, abd))
+    outer_mat <- diag(outer_abds, nrow = S^2, ncol = S^2)
+    B <- matrix(as.vector(B), nrow = S, ncol = S^2)
+    row_sum_abds <- rowSums(B %*% outer_mat)
+    B <- B * as.vector(total_B) / row_sum_abds
+    })
+  return(B)
+}
+
+GetAllTermsB <- function(abd, pars) {
+  B <- with(pars, {
+    total_B <- r / abd^2 - rowSums(A) / abd
+    
+    num_uniq <- S^2 - 1
+    opt_vals <- rdirichlet(S, alpha = rep(1, times = num_uniq))
+
+    B <- array(0, c(S, S, S))
+    for(i in 1:S) {
+      
+      inds <- crossing(j = 1:S, k = 1:S)
+      inds <- inds[!((inds$j == inds$k) & (inds$j == i)),]
+      for(cur_row in 1:nrow(inds)) {
+        cur_inds <- inds[cur_row,]
+        B[i, cur_inds$j, cur_inds$k] <- opt_vals[i, cur_row]
+      }
+      
+    }
+
+    B <- matrix(as.vector(B), nrow = S, ncol = S^2)
+    B <- B * total_B
+    return(B)
+  })
+  return(B)
+}
+
+GetAbdVarianceFeasibleB <- function(abd, pars) {
+  B <- with(pars, {
+    total_B <- r - A %*% abd
+    
+    num_uniq <- choose(S - 1, 2)
+    
+    B <- array(0, c(S, S, S))
+    for(i in 1:S) {
+      
+      inds <- crossing(j = 1:S, k = 1:S) %>%
+        filter(j != k) %>%
+        filter(j != i) %>%
+        filter(k != i) %>%
+        filter(j < k)
+      
+      for(cur_row in 1:nrow(inds)) {
+        cur_inds <- inds[cur_row,]
+        B[i, cur_inds$j, cur_inds$k] <- 1 / num_uniq
+      }
+      
+    }
+    
+    outer_abds <- as.vector(outer(abd, abd))
+    outer_mat <- diag(1 / outer_abds, nrow = S^2, ncol = S^2)
+    B <- matrix(as.vector(B), nrow = S, ncol = S^2) %*% outer_mat
+    B <- B * as.vector(total_B)
+  })
+  return(B)
+}
+
 BuildJacobian <- function(eq_abd, pars) {
   
   J <- with(pars, {
@@ -306,6 +425,37 @@ GetCorrelatedB <- function(pars, const_mat, const_vec, p) {
   const_B <- const_B + noise_added
   
   return(const_B)
+}
+
+BuildAbbJacobian <- function(abd, pars, p) {
+  
+  rand_part <- matrix(runif(pars$S^2, min = 0, max = 1 / pars$S), pars$S, pars$S)
+  diag(rand_part) <- 0
+  
+  row_sum_mat <- matrix(2 * (pars$r - rowSums(pars$A)) - rowSums(rand_part), nrow = pars$S, ncol = pars$S)
+  diag(row_sum_mat) <- 0
+  row_sum_mat <- row_sum_mat / (pars$S - 1)
+  rand_part <- rand_part + row_sum_mat
+  
+  rand_part <- rand_part - rowSums(rand_part)
+  rand_part <- rand_part + 2 * (pars$r / abd^2 - rowSums(pars$A) / abd)
+  
+  corr_part <- - pars$A
+  diag(corr_part) <- 0
+  
+  Btilde <- p * corr_part + (1-p) * rand_part
+  
+  row_sum_mat <- matrix(2 * (pars$r - rowSums(pars$A)) - rowSums(Btilde), nrow = pars$S, ncol = pars$S)
+  diag(row_sum_mat) <- 0
+  row_sum_mat <- row_sum_mat / (pars$S - 1)
+  Btilde <- Btilde + row_sum_mat
+  
+  #print(0.5 * rowSums(Btilde))
+  #print(pars$r - rowSums(pars$A))
+  
+  J <- - abd * (pars$A + Btilde)
+  
+  return(J)
 }
 
 GetCorr <- function(J) {

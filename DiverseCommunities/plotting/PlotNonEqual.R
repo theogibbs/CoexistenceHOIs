@@ -67,6 +67,54 @@ plMeanTargets <- ggplot(melt_data, aes(x = TargetAbd, y = ProbStable, color = Mu
 show(plMeanTargets)
 
 
+########################################################
+# Plotting all of the target simulations
+########################################################
+
+# Loading dependencies
+
+source("./Functions.R")
+
+# Plotting script
+
+out_data <- read_csv2("simdata/RealisticSADsCarryingCapacitiesHigherVariance.csv")
+
+melt_data <- out_data %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(ProbStable = mean(Stable)) %>%
+  dplyr::mutate(SigmaA = ifelse(SigmaA == 0, "All Equal", "Variable")) %>%
+  dplyr::mutate(SD = ifelse(SD == min(SD), "Low Variance", "High Variance")) %>%
+  dplyr::mutate(SD = factor(SD, levels = c("Low Variance", "High Variance"))) %>%
+  dplyr::mutate(SAD = ifelse(SAD == "Carrying Capacities", "Normal", SAD)) %>%
+  dplyr::mutate(SAD = factor(SAD, levels = c("Normal",
+                                             "Log Normal",
+                                             "Geometric Series",
+                                             "Zipf")))
+
+plSADMean <- ggplot(melt_data, aes(x = MuA, y = ProbStable, color = SigmaA, shape = SigmaA)) +
+  geom_line(linewidth = 0.5, alpha = 0.5) +
+  geom_point(alpha = 1, size = 3) +
+  theme_classic() +
+  facet_grid(SAD~SD) +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Probability of Stability",
+       color = "Pairwise\nInteractions",
+       shape = "Pairwise\nInteractions") +
+  theme(text = element_text(size=15),
+        panel.spacing = unit(2, "lines"),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  scale_color_manual(values = c("ForestGreen", "Black")) +
+  ggtitle("C") +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plSADMean)
+
+####
+
+
 
 
 out_data <- read_csv2("simdata/ThreeSpeciesTargets.csv")
@@ -175,8 +223,9 @@ plStability <- ggplot(stab_data, aes(x = SigmaA, y = ProbStable,
 plStability
 
 jpeg("../CoexistenceHOIs-Paper/figs/Fig3TargetAbundances.jpeg",
-     width = 3600, height = 1200, res = 300)
-grid.arrange(plMeanTargets, plNonEqual, nrow = 1)
+     width = 3200, height = 3700, res = 300)
+grid.arrange(plMeanTargets, plNonEqual, plSADMean,
+             layout_matrix = rbind(c(1, 2), c(3, 3), c(3, 3), c(3, 3)))
 dev.off()
 
 jpeg("../CoexistenceHOIs-Paper/figs/SIFigTargetAbundances.jpeg",

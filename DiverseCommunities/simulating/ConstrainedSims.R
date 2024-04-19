@@ -10,13 +10,13 @@ source("./DiverseCommunities/DiverseCommunityFunctions.R")
 
 # Simulating script
 
-S <- 5
+S <- 20
 mu_R <- 1
 sigma_R <- 0
 mu_D <- 1
 sigma_D <- 0
-mu_A <- 0
-sigma_A <- 1
+mu_A <- c(-0.5, 0, 0.5) / S
+sigma_A <- seq(0.5, 1.5, length.out = 3)
 mu_B <- 0
 sigma_B <- 0
 rho_A <- 0
@@ -40,51 +40,31 @@ in_pars <- crossing(S = S,
                     scaling = scaling,
                     DistB = dist_B)
 
-pars <- BuildPars(in_pars[1,])
-
-target_abd <- GetTargetAbd(pars)
-pars$B <- GetFeasibleB(target_abd, pars)
-BuildJacobian(target_abd, pars)
-pars$r - pars$A %*% target_abd - pars$B %*% as.vector(outer(target_abd, target_abd))
-Bmat <- pars
-Bmat$A <- matrix(0, nrow = Bmat$S, ncol = Bmat$S)
-Bmat <- BuildJacobian(target_abd, Bmat)
-Bmat
-rowSums(Bmat) / 2
-rowSums(pars$A) - 1
-
-const_mat <- BuildConstraintMat(pars)
-
-num_repl <- 1
+num_repl <- 100
 in_pars <- bind_rows(replicate(num_repl, in_pars, simplify = FALSE))
 in_pars$ParsID <- runif(nrow(in_pars))
 
 out_data <- data.frame()
 
-ps <- seq(0, 0.5, length.out = 1)
+ps <- seq(0.1, 1, length.out = 10)
 
 start_time <- Sys.time()
 
 for(cur_row in 1:nrow(in_pars)) {
   cur_stats <- in_pars[cur_row,]
   cur_pars <- BuildPars(cur_stats)
+  
   for(p in ps) {
     
     target_abd <- GetTargetAbd(pars = cur_pars)
-    const_vec <- BuildConstraintVector(target_abd, cur_pars)
-    const_B <- GetCorrelatedB(pars = cur_pars, const_mat = const_mat,
-                              const_vec = const_vec, p = p)
-    cur_pars$B <- const_B
     
-    J <- BuildJacobian(eq_abd = target_abd, pars = cur_pars)
+    J <- BuildAbbJacobian(abd = target_abd, pars = cur_pars, p = p)
     
     cur_eig <- GetEig(J)
     
     cur_stable <- (cur_eig < 0)
     
-    cur_corr <- GetCorr(cur_pars)
-    
-    cur_data <- data.frame(Stable = cur_stable, p = p, Corr = cur_corr)
+    cur_data <- data.frame(Stable = cur_stable, p = p)
     cur_data <- cbind(cur_stats, cur_data)
     
     out_data <- rbind(out_data, cur_data)
@@ -94,7 +74,7 @@ for(cur_row in 1:nrow(in_pars)) {
 print(Sys.time() - start_time)
 
 # writing out the data
-filename <- "Correlations"
+filename <- "SimCorr"
 cur_file <- paste0("./simdata/", filename, ".csv")
 write_csv2(out_data, file = cur_file)
 

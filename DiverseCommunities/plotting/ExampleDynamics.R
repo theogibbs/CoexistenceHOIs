@@ -16,8 +16,8 @@ mu_R <- 1
 sigma_R <- 0
 mu_D <- 1
 sigma_D <- 0
-mu_A <- 0
-sigma_A <- 0.25
+mu_A <- 0.05
+sigma_A <- 0
 rho_A <- 0
 mu_B <- 0
 sigma_B <- 0
@@ -42,8 +42,9 @@ in_pars <- crossing(S = S,
                     DistB = dist_B)
 
 pars <- BuildPars(in_pars)
-target_abd <- GetTargetAbd(pars)
+target_abd <- GetTargetAbd(pars, value = 0.1)
 ini_state <- runif(S, min = 0, max = 0.05)
+#ini_state <- target_abd + rnorm(pars$S, sd = 0.01)
 
 end_time <- 50
 time_step <- 0.1
@@ -57,6 +58,12 @@ out_pw <- melt(out_pw, id.vars = "time")
 out_pw$Type <- "No HOIs"
 
 const_B <- GetFeasibleB(target_abd, pars)
+#const_B <- GetNonEqualFeasibleB(target_abd, pars)
+#const_B <- GetAllTermsB(target_abd, pars)
+const_B <- GetEqualAcrossRowsFeasibleB(target_abd, pars)
+#const_B <- GetIdCorrelatedB(target_abd, pars, p = 1)
+const_B <- GetAbdVarianceFeasibleB(target_abd, pars)
+
 pars$B <- const_B
 
 out_hoi <- IntegrateDynamics(inistate = ini_state,

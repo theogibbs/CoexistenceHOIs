@@ -1,5 +1,5 @@
 ########################################################
-# Example dynamics solving and plotting
+# Creates SI Fig K by iterating over many initial conditions
 ########################################################
 
 # Loading dependencies

@@ -1,5 +1,5 @@
 ########################################################
-# Plotting a nearly diagonal jacobian
+# Plotting a nearly diagonal jacobian in SI Fig. G
 ########################################################
 
 # Loading dependencies

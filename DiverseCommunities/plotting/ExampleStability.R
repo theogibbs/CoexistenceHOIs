@@ -11,6 +11,7 @@ source("./DiverseCommunities/DiverseCommunityFunctions.R")
 
 set.seed(5)
 
+# sets parameters
 S <- 10
 mu_R <- 1
 sigma_R <- 0
@@ -52,6 +53,7 @@ end_time_1 <- 5
 end_time_2 <- 10
 time_step <- 0.1
 
+# integrates dynamics at the equilibrium
 out_eq <- IntegrateDynamics(inistate = ini_state,
                             pars = pars,
                             endtime = end_time_1,
@@ -62,6 +64,7 @@ end_eq <- as.numeric(out_eq[nrow(out_eq), -1])
 ini_pert <- end_eq
 ini_pert <- ini_pert + runif(pars$S, min = -0.25, max = 0.25)
 
+# integrates the dynamics after a small perturbation
 out_pert <- IntegrateDynamics(inistate = ini_pert,
                               pars = pars,
                               endtime = end_time_2,
@@ -73,6 +76,7 @@ out_pert$time <- out_pert$time + max(out_eq$time)
 out_stable <- rbind(out_eq, out_pert)
 out_stable$Stability <- "Stable"
 
+# code does the same as above but with a larger variation in pairwise interactions inducing instability
 sigma_A <- 0.75
 
 in_pars <- crossing(S = S,
@@ -95,8 +99,6 @@ target_abd <- GetTargetAbd(pars)
 
 const_B <- GetFeasibleB(target_abd, pars)
 pars$B <- const_B
-
-
 
 out_eq <- IntegrateDynamics(inistate = ini_state,
                             pars = pars,
@@ -123,6 +125,7 @@ out <- rbind(out_stable, out_unstable)
 melt_data <- melt(out, id.vars = c("time", "Stability")) %>%
   mutate(Stability = factor(Stability, levels = c("Stable", "Unstable")))
 
+# plots the stable and unstable dynamics together before and after perturbations
 plExample <- ggplot() +
   geom_line(data = melt_data, aes(x = time, y = value, color = variable),
             size = 2, alpha = 0.5) +

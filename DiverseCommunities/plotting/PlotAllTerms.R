@@ -1,5 +1,5 @@
 ########################################################
-# Plotting all of the mean variance simulations
+# Simulates B tensors with all the interactions to create SI Fig. N
 ########################################################
 
 # Loading dependencies

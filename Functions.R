@@ -90,14 +90,19 @@ BuildA <- function(S = 100, mu = 0, sigma = 0.1, rho = 0){
   return(A)
 }
 
+# returns the target abundance vector given the input parameterization
 GetTargetAbd <- function(pars, choice = "Carrying Capacities", value = 0, min_val = 1e-2) {
+  
+  # returns the carrying capacioties of the model
   if(choice == "Carrying Capacities") {
     car_cap <- unique(rep(pars$r / diag(pars$A)))
     target_abd <- car_cap + rnorm(pars$S, mean = 0, sd = value)
     target_abd[target_abd <= 0] <- min_val
     target_abd <- target_abd / mean(target_abd) * car_cap
+    # simply returns the input values
   } else if(choice == "Specified") {
     target_abd <- rep(value, times = pars$S)
+    # computes the equilibrium of the pairwise only model and returns this vector plus noise
   } else if(choice == "Pairwise + Noise") {
     target_abd <- GetPairwiseAbd(pars)
     if(sum(target_abd < 0)) {
@@ -110,6 +115,7 @@ GetTargetAbd <- function(pars, choice = "Carrying Capacities", value = 0, min_va
     }
     target_abd <- target_abd + rnorm(pars$S, mean = 0, sd = value)
     target_abd[target_abd <= 0] <- min_val
+    # the following parameterizations imlement different realistitc species abundance distributions
   } else if(choice == "Log Normal") {
     target_abd <- rlnorm(n = pars$S, sdlog = value)
     car_cap <- unique(rep(pars$r / diag(pars$A)))
@@ -139,6 +145,7 @@ GetTargetAbd <- function(pars, choice = "Carrying Capacities", value = 0, min_va
   return(target_abd)
 }
 
+# plots heatmaps of matrices like those in Fig. 4
 GridM <- function(M, Title, in_color, in_max) {
   hm.palette <- colorRampPalette(brewer.pal(9, in_color), space='Lab')
   M.melted <- melt(t(M))

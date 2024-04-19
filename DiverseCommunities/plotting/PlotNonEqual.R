@@ -1,5 +1,5 @@
 ########################################################
-# Plotting all of the target simulations
+# Plotting all of the target abundance simulations to make Fig. 3 and SI Fig. E
 ########################################################
 
 # Loading dependencies

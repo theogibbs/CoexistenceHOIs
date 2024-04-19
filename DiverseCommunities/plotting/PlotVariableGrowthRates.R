@@ -1,5 +1,5 @@
 ########################################################
-# Plotting the variable growth rates simulations
+# Plotting the variable growth rates simulations in SI Fig. B
 ########################################################
 
 # Loading dependencies

@@ -11,6 +11,7 @@ library(ggtern)
 
 # Functions
 
+# builds the pairwise interaction matrix from its statistics
 BuildA <- function(S = 100, mu = 0, sigma = 0.1, rho = 0){
   
   Pairs <- SampleCoefficientsFromBivariate(S, mux = mu, muy = mu,
@@ -29,6 +30,7 @@ BuildA <- function(S = 100, mu = 0, sigma = 0.1, rho = 0){
   return(A)
 }
 
+# builds a higher-order interaction matrix from its statistics without constraints
 BuildB <- function(S, MuD, SigmaD, MuB, SigmaB, intra = "None",
                    SelfReg = "Quadratic", scaling = TRUE, DistB = "Normal") {
   
@@ -67,6 +69,7 @@ BuildB <- function(S, MuD, SigmaD, MuB, SigmaB, intra = "None",
   return(B)
 }
 
+# builds each of the ingredients of the model and returns a list with them
 BuildPars <- function(in_pars) {
   
   pars <- with(in_pars, {
@@ -83,7 +86,7 @@ BuildPars <- function(in_pars) {
   return(pars)
 }
 
-# computes the growth rates of the current state and parameters for the linear ODEs
+# computes the growth rates of the current state and parameters for the ODEs
 Dynamics <- function(time, state, pars) {
   
   dNdt <- with(pars, {
@@ -96,6 +99,7 @@ Dynamics <- function(time, state, pars) {
   return(list(dNdt))
 }
 
+# returns a higher-order interaction matrix that enforces feasibility when the target abundances are equal
 GetFeasibleB <- function(abd, pars) {
   B <- with(pars, {
     total_B <- r / abd^2 - rowSums(A) / abd
@@ -126,6 +130,7 @@ GetFeasibleB <- function(abd, pars) {
   return(B)
 }
 
+# returns a higher-order interaction matrix that enforces feasibility when the target abundances are not equal
 GetNonEqualFeasibleB <- function(abd, pars) {
   B <- with(pars, {
     total_B <- r - A %*% abd
@@ -158,6 +163,7 @@ GetNonEqualFeasibleB <- function(abd, pars) {
   return(B)
 }
 
+# returns a higher-order interaction matrix that enforces feasibility but ensure the B entries are equal across rows
 GetEqualAcrossRowsFeasibleB <- function(abd, pars) {
   B <- with(pars, {
     total_B <- r - A %*% abd
@@ -189,6 +195,7 @@ GetEqualAcrossRowsFeasibleB <- function(abd, pars) {
   return(B)
 }
 
+# returns a B matrix with no missing terms
 GetAllTermsB <- function(abd, pars) {
   B <- with(pars, {
     total_B <- r / abd^2 - rowSums(A) / abd
@@ -215,6 +222,7 @@ GetAllTermsB <- function(abd, pars) {
   return(B)
 }
 
+# returns a B matrix where the variation between entries is driven only by the variance in abundances
 GetAbdVarianceFeasibleB <- function(abd, pars) {
   B <- with(pars, {
     total_B <- r - A %*% abd
@@ -245,6 +253,7 @@ GetAbdVarianceFeasibleB <- function(abd, pars) {
   return(B)
 }
 
+# returns the Jacobian of the model
 BuildJacobian <- function(eq_abd, pars) {
   
   J <- with(pars, {
@@ -259,8 +268,6 @@ BuildJacobian <- function(eq_abd, pars) {
           hoi_sum <- hoi_sum - eq_abd[j] * tensorB[i,j,j]
         }
         
-        ### CHECK THE JACOBIAN -- is this if statement necessary??
-        
         if(i == j) {
           hoi_sum <- hoi_sum - eq_abd[i] * tensorB[i,i,i]
         }
@@ -274,6 +281,7 @@ BuildJacobian <- function(eq_abd, pars) {
   return(J)
 }
 
+# returns the abundances realized in simulations of the dynamics
 GetAbds <- function(pars, ini_state, end_time, zero_cutoff) {
   out_abds <- IntegrateDynamics(inistate = ini_state,
                                 pars = pars,
@@ -301,6 +309,7 @@ GetAbds <- function(pars, ini_state, end_time, zero_cutoff) {
   return(out_abds)
 }
 
+# gets the real part of the leading eigenvalue of the Jacobian
 GetMinEig <- function(target_abd, pars) {
   const_B <- GetFeasibleB(target_abd, pars)
   new_pars <- pars
@@ -311,6 +320,7 @@ GetMinEig <- function(target_abd, pars) {
   return(eig)
 }
 
+# translates between vectors and tensors
 Vec2Tensor <- function(vec) {
   inS <- (length(vec))^(1/3)
   Bmat <- matrix(vec, nrow = inS, ncol = inS^2, byrow = T)
@@ -318,11 +328,13 @@ Vec2Tensor <- function(vec) {
   return(B)
 }
 
+# creates a matrix from a vector
 Vec2WideMat <- function(num_spec, vec) {
   Bmat <- matrix(vec, nrow = num_spec, ncol = num_spec^2, byrow = T)
   return(Bmat)
 }
 
+# returns the index in a vector from tensor indices
 GetLongInd <- function(num_spec, i, j, k) {
   
   ret <- num_spec^2 * (i-1) + num_spec * (j-1) + k
@@ -330,6 +342,7 @@ GetLongInd <- function(num_spec, i, j, k) {
   
 }
 
+# implements another method of getting B with variable abundances and additional constraints
 BuildConstraintMat <- function(pars) {
   num_spec <- pars$S
   
@@ -358,6 +371,7 @@ BuildConstraintMat <- function(pars) {
   return(const_mat)
 }
 
+# builds a constraint vector for getting B with the alternative method above
 BuildConstraintVector <- function(abd, pars) {
   const_vec <- with(pars, {
     total_B <- r / abd^2 - rowSums(A) / abd
@@ -366,7 +380,7 @@ BuildConstraintVector <- function(abd, pars) {
   return(const_vec)
 }
 
-
+# gets B using hit and run sampling
 GetConstrainedB <- function(target_abd, pars) {
   
   constr_list <- simplexConstraints(n = choose(pars$S - 1, 2))
@@ -406,6 +420,7 @@ GetConstrainedB <- function(target_abd, pars) {
   return(out_B)
 }
 
+# returns a B tensor with additional correlations besides the original constraints
 GetCorrelatedB <- function(pars, const_mat, const_vec, p) {
   const_inv <- ginv(const_mat)
   const_B <- const_inv %*% const_vec
@@ -427,6 +442,7 @@ GetCorrelatedB <- function(pars, const_mat, const_vec, p) {
   return(const_B)
 }
 
+# computes the Jacobian using Btilde rather than the full B tensor
 BuildAbbJacobian <- function(abd, pars, p) {
   
   rand_part <- matrix(runif(pars$S^2, min = 0, max = 1 / pars$S), pars$S, pars$S)
@@ -458,6 +474,7 @@ BuildAbbJacobian <- function(abd, pars, p) {
   return(J)
 }
 
+# determines the correlation between the upper and lower triangles of the Jacobian
 GetCorr <- function(J) {
   
   first_vals <- J[upper.tri(J)]
@@ -466,13 +483,14 @@ GetCorr <- function(J) {
   return(out_cor)
 }
 
-
+# reformats eigenvalues into a dataframe
 PrepareEigs <- function(M, label) {
   eigs <- eigen(M, only.values = TRUE)$values
   deM <- data.frame(Real = Re(eigs), Imaginary = Im(eigs), Label = label)
   return(deM)
 }
 
+# plots eigenvalues like in Fig. 4
 PlotEigs <- function(A, B, J, Title = "Spectrum") {
   
   eigs <- rbind(PrepareEigs(A, "Pairwise"),

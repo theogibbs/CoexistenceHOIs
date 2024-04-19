@@ -1,1 +1,5 @@
-# Code for Coexistence HOIs
+# Code for the manuscript "When can higher-order interactions produce stable coexistence?"
+
+In the first directory, there is a script called Functions.R that has general functions for simulating and plotting the dynamics of our model. There are also three folders. The simdata folder has the data from simulations. The DiverseCommunities folder simulates and plots results for communities with more than three species, while the ThreeSpecies folder does the same thing for communities with three species.
+
+In the ThreeSpecies and DiverseCommunities directories, there are subdirectories called simulating and plotting as well as an additional file of helper functions specific to diverse or three species communities. Scripts in the simulating directory simulate different parameter combinations and record the data they produce in the simdata folder. Scripts in the plotting directory read in data from the simdata directory and create plots.

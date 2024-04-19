@@ -1,5 +1,5 @@
 ########################################################
-# Plotting all of the mean variance simulations
+# Plotting the leading eigenvalue of the system as a function of the number of species to SI Fig. D
 ########################################################
 
 # Loading dependencies

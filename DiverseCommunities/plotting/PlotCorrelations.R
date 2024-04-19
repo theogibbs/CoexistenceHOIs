@@ -1,5 +1,5 @@
 ########################################################
-# Plotting correlated matrix spectra
+# Plotting correlated matrices, spectra and simulation results in Fig. 4
 ########################################################
 
 # Loading dependencies

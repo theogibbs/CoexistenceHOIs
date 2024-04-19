@@ -1,5 +1,5 @@
 ########################################################
-# Plotting the alternative sampling simulations
+# Plotting the alternative sampling simulations to create SI Fig. C
 ########################################################
 
 # Loading dependencies

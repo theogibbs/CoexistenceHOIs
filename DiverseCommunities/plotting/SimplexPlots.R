@@ -1,5 +1,5 @@
 ########################################################
-# Non-equal abundances
+# Creates non-equal abundance simplex plots in SI Fig. L
 ########################################################
 
 # Loading dependencies

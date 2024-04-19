@@ -1,5 +1,5 @@
 ########################################################
-# Plotting all of the mean variance simulations
+# Plotting simulations where the pairwise diagonal is not equal in SI Fig. M
 ########################################################
 
 # Loading dependencies

@@ -1,5 +1,5 @@
 ########################################################
-# Plotting all of the target simulations
+# Plotting target abundance simulations with realistic SADs that are not the carrying capacities as in SI Fig. O
 ########################################################
 
 # Loading dependencies

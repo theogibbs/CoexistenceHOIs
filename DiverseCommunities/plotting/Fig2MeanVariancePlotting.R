@@ -1,5 +1,5 @@
 ########################################################
-# Plotting all of the mean variance simulations
+# Plotting all of the mean variance simulations to create Fig. 2 and supplementary figures
 ########################################################
 
 # Loading dependencies

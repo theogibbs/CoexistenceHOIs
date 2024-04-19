@@ -1,5 +1,5 @@
 ########################################################
-# Bifurcation plotting
+# Plots the bifurcation analysis in SI Fig. J
 ########################################################
 
 # Loading dependencies

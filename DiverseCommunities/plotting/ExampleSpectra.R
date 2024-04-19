@@ -8,6 +8,7 @@ source("./Functions.R")
 
 set.seed(1)
 
+# sets parameters
 S <- 50
 mu_R <- 1
 sigma_R <- 0
@@ -39,7 +40,7 @@ in_pars <- crossing(S = S,
                     DistB = dist_B)
 
 out_data <- data.frame()
-
+# loops over parameters
 for(cur_row in 1:nrow(in_pars)) {
   
   cur_params <- in_pars[cur_row,]
@@ -50,6 +51,7 @@ for(cur_row in 1:nrow(in_pars)) {
   pw_abds <- target_abd
   pw_eigs <- eigen(BuildJacobian(pw_abds, cur_pars), only.values = TRUE)$values
   
+  # records stability data for pairwise interactions
   pw_feas_data <- data.frame(Real = Re(pw_eigs),
                              Imaginary = Im(pw_eigs),
                              Type = "Feasible Pairwise")
@@ -61,7 +63,7 @@ for(cur_row in 1:nrow(in_pars)) {
   hoi_abds <- target_abd
   hoi_eigs <- eigen(BuildJacobian(pw_abds, cur_pars), only.values = TRUE)$values
   
-
+  # records stability data for higher-order interactions
   hoi_data <- data.frame(Real = Re(hoi_eigs),
                          Imaginary = Im(hoi_eigs),
                          Type = "Constrained HOIs")
@@ -94,6 +96,7 @@ pred_ho_mus$Real <- -(pred_ho_mus$MuD - (pred_ho_mus$S - 1) * pred_ho_mus$MuA)
 pred_mus <- rbind(pred_pw_mus, pred_ho_mus) %>%
   filter(MuA != 0)
 
+# plots spectra across interaction types and statistics
 plSpectra <- ggplot(data = out_data, aes(x = Real, y = Imaginary,
                                          color = Type, shape = Type)) +
   geom_point(alpha = 0.5, size = 2) +

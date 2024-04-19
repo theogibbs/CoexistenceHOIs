@@ -1,5 +1,5 @@
 ########################################################
-# Example diverse community dynamics
+# Creates Fig. 1D
 ########################################################
 
 # Loading dependencies

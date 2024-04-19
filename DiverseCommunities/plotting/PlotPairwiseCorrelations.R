@@ -1,5 +1,5 @@
 ########################################################
-# Plotting the pairwise correlation simulations
+# Plotting the pairwise correlation simulations to make SI Fig. F
 ########################################################
 
 # Loading dependencies

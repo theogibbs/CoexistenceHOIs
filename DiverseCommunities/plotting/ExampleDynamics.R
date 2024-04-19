@@ -11,6 +11,7 @@ source("./DiverseCommunities/DiverseCommunityFunctions.R")
 
 set.seed(1)
 
+# setting parameters
 S <- 10
 mu_R <- 1
 sigma_R <- 0
@@ -42,13 +43,14 @@ in_pars <- crossing(S = S,
                     DistB = dist_B)
 
 pars <- BuildPars(in_pars)
-target_abd <- GetTargetAbd(pars, value = 0.1)
-ini_state <- runif(S, min = 0, max = 0.05)
+target_abd <- GetTargetAbd(pars, value = 0.1) # setting target abundance
+ini_state <- runif(S, min = 0, max = 0.05)  # setting initial conditions
 #ini_state <- target_abd + rnorm(pars$S, sd = 0.01)
 
 end_time <- 50
 time_step <- 0.1
 
+# integrating dynamics with only pairwise interactions
 out_pw <- IntegrateDynamics(inistate = ini_state,
                             pars = pars,
                             endtime = end_time,
@@ -60,12 +62,12 @@ out_pw$Type <- "No HOIs"
 const_B <- GetFeasibleB(target_abd, pars)
 #const_B <- GetNonEqualFeasibleB(target_abd, pars)
 #const_B <- GetAllTermsB(target_abd, pars)
-const_B <- GetEqualAcrossRowsFeasibleB(target_abd, pars)
+#const_B <- GetEqualAcrossRowsFeasibleB(target_abd, pars)
 #const_B <- GetIdCorrelatedB(target_abd, pars, p = 1)
-const_B <- GetAbdVarianceFeasibleB(target_abd, pars)
+#const_B <- GetAbdVarianceFeasibleB(target_abd, pars)
 
 pars$B <- const_B
-
+# integrating dynamics with only pairwise + higher-order interactions
 out_hoi <- IntegrateDynamics(inistate = ini_state,
                              pars = pars,
                              endtime = end_time,
@@ -77,6 +79,7 @@ out_hoi$Type <- "Constrained HOIs"
 series <- rbind(out_pw, out_hoi) %>%
   mutate(Type = factor(Type, levels = c("No HOIs", "Constrained HOIs")))
 
+#plotting
 plExample <- ggplot() +
   geom_line(data = series, aes(x = time, y = value, color = variable),
             size = 2, alpha = 0.5) +

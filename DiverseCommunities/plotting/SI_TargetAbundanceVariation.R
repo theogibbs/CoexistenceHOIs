@@ -1,0 +1,226 @@
+########################################################
+# Plotting simulations with variable target abundances
+# to create SI Fig. P, Q, R and S
+########################################################
+
+# Loading dependencies
+
+source("./Functions.R")
+
+# Plotting script
+
+out_data <- read_csv2("simdata/VaryingTargetAbundances.csv")
+
+melt_data <- out_data %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(ProbStable = mean(Stable)) %>%
+  dplyr::mutate(SigmaA = ifelse(SigmaA == 0, "All Equal", "Variable"))
+
+plSADMean <- ggplot(melt_data, aes(x = MuA, y = ProbStable, color = as.factor(SD), shape = as.factor(SD))) +
+  geom_line(linewidth = 0.5, alpha = 0.5) +
+  geom_point(alpha = 1, size = 3) +
+  theme_classic() +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Probability of Stability",
+       color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plSADMean)
+
+jpeg("../CoexistenceHOIs-Paper/figs/SIFigNormalSADs.jpeg",
+     width = 2000, height = 1400, res = 300)
+plSADMean
+dev.off()
+
+out_data <- read_csv2("simdata/VaryingTargetAbundancesEqualAcrossRows.csv")
+
+melt_data <- out_data %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(ProbStable = mean(Stable)) %>%
+  dplyr::mutate(SigmaA = ifelse(SigmaA == 0, "All Equal", "Variable"))
+
+plSADMean <- ggplot(melt_data, aes(x = MuA, y = ProbStable, color = as.factor(SD), shape = as.factor(SD))) +
+  geom_line(linewidth = 0.5, alpha = 0.5) +
+  geom_point(alpha = 1, size = 3) +
+  theme_classic() +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Probability of Stability",
+       color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plSADMean)
+
+jpeg("../CoexistenceHOIs-Paper/figs/SIFigEqualAcrossRowsSADs.jpeg",
+     width = 2000, height = 1400, res = 300)
+plSADMean
+dev.off()
+
+out_data <- read_csv2("simdata/VaryingTargetAbundancesAbdVariance.csv")
+
+melt_data <- out_data %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(ProbStable = mean(Stable)) %>%
+  dplyr::mutate(SigmaA = ifelse(SigmaA == 0, "All Equal", "Variable"))
+
+plSADMean <- ggplot(melt_data, aes(x = MuA, y = ProbStable, color = as.factor(SD), shape = as.factor(SD))) +
+  geom_line(linewidth = 0.5, alpha = 0.5) +
+  geom_point(alpha = 1, size = 3) +
+  theme_classic() +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Probability of Stability",
+       color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plSADMean)
+
+jpeg("../CoexistenceHOIs-Paper/figs/SIFigAbdVarianceSADs.jpeg",
+     width = 2000, height = 1400, res = 300)
+plSADMean
+dev.off()
+
+melt_data <- out_data %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(MeanHOI = mean(MeanB)) %>%
+  dplyr::mutate(SigmaA = ifelse(SigmaA == 0, "All Equal", "Variable"))
+
+plMeanHOI <- ggplot(melt_data, aes(x = MuA, y = MeanHOI, color = as.factor(SD), shape = as.factor(SD))) +
+  geom_line(linewidth = 0.5, alpha = 0.5) +
+  geom_point(alpha = 1, size = 3) +
+  theme_classic() +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Mean HOI Strength",
+       color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank())
+show(plMeanHOI)
+
+melt_data <- out_data %>%
+  group_by(S, MuA, SigmaA, SAD, SD, ParsID) %>%
+  dplyr::summarize(RealPartLeadingEig = max(Real), MeanJac = unique(S*MeanJ)) %>%
+  dplyr::mutate(MeanEntry = unique((MeanJac - 1) / (S-1))) %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(AvgRealPartLeadingEig = mean(RealPartLeadingEig),
+                   MeanJacobian = mean(MeanJac),
+                   MeanEntry = - (1 + mean(MeanEntry))) %>%
+  melt(id.vars = c("MuA", "SigmaA", "SAD", "SD")) %>%
+  mutate(SD = paste("SD =", round(SD, 3)))
+
+plLeadingEig <- ggplot(melt_data, aes(x = MuA, y = value,
+                                      color = variable, shape = variable)) +
+  geom_line(linewidth = 0.5, alpha = 0.5) + 
+  geom_point(alpha = 1, size = 3) +
+  #ylim(c(-1, 1)) +
+  theme_classic() +
+  facet_wrap(variable~as.factor(SD), nrow = 3, scales = "free") +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Average Real Part of the Leading Eigenvalue",
+       color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plLeadingEig)
+
+melt_data <- out_data %>%
+  group_by(S, MuA, SigmaA, SAD, SD, ParsID) %>%
+  dplyr::summarize(RealPartLeadingEig = max(Real), MeanJac = unique(S*MeanJ)) %>%
+  group_by(MuA, SigmaA, SAD, SD) %>%
+  dplyr::summarize(AvgRealPartLeadingEig = mean(RealPartLeadingEig), MeanJacobian = mean(MeanJac))
+
+ggplot(melt_data, aes(x = MuA, y = MeanJacobian,
+                      color = as.factor(SD))) +
+  geom_line(linewidth = 0.5, alpha = 0.5) + 
+  geom_point(alpha = 1, size = 3) +
+  #ylim(c(-1, 1)) +
+  theme_classic() +
+  labs(x = expression("Mean strength of pairwise interactions"~(mu[A])),
+       y = "Mean Jacobian",
+       color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+
+
+
+plot_data <- out_data %>%
+  mutate(SD = paste("SD =", SD)) %>%
+  mutate(MuA = paste("MuA =", round(MuA, 3)))
+
+plEigs <- ggplot(plot_data, aes(x = Real, y = Imaginary, color = SD)) +
+  geom_point(alpha = 0.01, size = 3) +
+  theme_classic() +
+  facet_wrap(SD~MuA, nrow = 5, scales = "free") +
+  labs(color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plEigs)
+
+
+jpeg("../CoexistenceHOIs-Paper/figs/SIFigUnstableSpectra.jpeg",
+     width = 8000, height = 4000, res = 300)
+plEigs
+dev.off()
+
+
+hist_data <- out_data %>%
+  mutate(PredDensity = dnorm(Real, mean = -1, sd = SD)) %>%
+  mutate(SD = paste("SD =", round(SD, 3)))
+
+plEigHists <- ggplot(hist_data, aes(x = Real, y = after_stat(density), color = SD)) +
+  geom_histogram(fill = "white") +
+  #geom_line(aes(x = Real, y = PredDensity)) +
+  theme_classic() +
+  facet_wrap(SD~MuA, nrow = 5, scales = "free") +
+  labs(color = "Target\nAbundance\nVariation",
+       shape = "Target\nAbundance\nVariation") +
+  theme(text = element_text(size=15),
+        strip.text.x = element_text(size = 15),
+        strip.text.y = element_text(size = 15),
+        legend.text=element_text(size = 15),
+        axis.text.x = element_text(angle = 45, vjust = 0.5),
+        strip.background = element_blank()) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5)
+show(plEigHists)
+
+
+

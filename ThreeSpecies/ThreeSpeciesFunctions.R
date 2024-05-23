@@ -1,8 +1,15 @@
 ########################################################
 # Functions for three species simulations
+# For the three species case, each species only
+# experiences one HOI in our parameterization, so we use
+# a slightly simpler notation / coding format to keep
+# track of these interactions. This file contains the
+# functions for these simpler cases.
 ########################################################
 
 # Functions
+
+# computes the per capita growth rates of the model
 ThreeSpeciesGrowthRates <- function(state, pars) {
   
   growth_rates <- with(pars, {
@@ -16,6 +23,8 @@ ThreeSpeciesGrowthRates <- function(state, pars) {
   return(growth_rates)
 }
 
+# returns a list of the derivatives of the model given the state and parameters
+# using the growth rates function
 ThreeSpeciesDynamics <- function(time, state, pars) {
   
   dNdt <- with(pars, {
@@ -29,6 +38,7 @@ ThreeSpeciesDynamics <- function(time, state, pars) {
   return(list(dNdt))
 }
 
+# builds a list of the parameters of the three species model
 BuildThreeSpeciesPars <- function(in_pars) {
   
   pars <- with(in_pars, {
@@ -44,6 +54,9 @@ BuildThreeSpeciesPars <- function(in_pars) {
   return(pars)
 }
 
+# creates the vector of the three higher
+# order interactions and constrains them
+# to counter the pairwise interactions
 GetThreeSpeciesB <- function(abd, pars) {
   const_b <- with(pars, {
     
@@ -63,6 +76,8 @@ GetThreeSpeciesB <- function(abd, pars) {
   return(const_b)
 }
 
+# compues the three species Jacobian using the
+# formula from the main text
 BuildThreeSpeciesJacobian <- function(eq_abd, pars) {
   J <- with(pars, {
     Bmat <- matrix(b, 3, 3)
@@ -82,23 +97,8 @@ BuildThreeSpeciesJacobian <- function(eq_abd, pars) {
   return(J)
 }
 
-BuildConstrainedThreeSpeciesJacobian <- function(eq_abd, pars) {
-    
-    mod_pars <- pars
-    mod_pars$b <- rep(0, times = 3)
-    J <- BuildJacobian(eq_abd, mod_pars)
-    
-    mod_J <- J
-    mod_J[1,2] <- -J[1,3]
-    mod_J[1,3] <- -J[1,2]
-    mod_J[2,1] <- -J[2,3]
-    mod_J[2,3] <- -J[2,1]
-    mod_J[3,1] <- -J[3,2]
-    mod_J[3,2] <- -J[3,1]
-    
-    return(mod_J)
-  }
-
+# integrates the dynamics of the model and returns the ending state
+# and the stability of this resulting state
 GetThreeSpeciesAbds <- function(pars, ini_state, end_time, zero_cutoff) {
   out_abds <- IntegrateDynamics(inistate = ini_state,
                                 pars = pars,
@@ -127,40 +127,3 @@ GetThreeSpeciesAbds <- function(pars, ini_state, end_time, zero_cutoff) {
                          TargetAbd = target_log)
   return(out_abds)
 }
-
-ThreeSpeciesCubicDynamics <- function(time, state, pars) {
-  dNdt <- with(pars, {
-    dNdt <- state * (r - A %*% state - b * state^2)
-    return(dNdt)
-  })
-  return(list(dNdt))
-}
-
-BuildCubicJacobian <- function(eq_abd, pars) {
-  J <- with(pars, {
-    Bmat <- diag(b, 3, 3)
-    J <- - eq_abd * (A + 2 * eq_abd * Bmat)
-    return(J)
-  })
-  return(J)
-}
-
-GetThreeSpeciesMinEig <- function(target_abd, pars) {
-  new_abd <- rep(target_abd, times = length(pars$r))
-  const_b <- GetThreeSpeciesB(new_abd, pars)
-  new_pars <- pars
-  pars$b <- const_b
-  J <- BuildThreeSpeciesJacobian(eq_abd = target_abd, pars = pars)
-  eig <- GetEig(J)
-  return(eig)
-}
-
-GetThreeSpeciesMultiEig <- function(target_abd, pars) {
-  const_b <- GetThreeSpeciesB(target_abd, pars)
-  new_pars <- pars
-  pars$b <- const_b
-  J <- BuildThreeSpeciesJacobian(eq_abd = target_abd, pars = pars)
-  eig <- GetEig(J)
-  return(eig)
-}
-

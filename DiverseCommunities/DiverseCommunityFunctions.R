@@ -3,7 +3,6 @@
 ########################################################
 
 # Loading packages and dependencies
-
 library(LaplacesDemon)
 library(MASS)
 library(hitandrun)
@@ -22,8 +21,8 @@ BuildA <- function(S = 100, mu = 0, sigma = 0.1, rho = 0){
   k <- 1
   for (i in 1:(S-1)){
     for (j in (i + 1):S){
-      A[j,i] <- Pairs[k,1]
-      A[i,j] <- Pairs[k,2]
+      A[j,i] <- Pairs[k,1] # fills in the pairs of sampled from a possibly correlated
+      A[i,j] <- Pairs[k,2] # bivariate distribution sampled above
       k <- k + 1
     }
   }
@@ -110,12 +109,15 @@ GetFeasibleB <- function(abd, pars) {
     B <- array(0, c(S, S, S))
     for(i in 1:S) {
       
+      # preventing the HOI terms with repeated indices
+      # from being included
       inds <- crossing(j = 1:S, k = 1:S) %>%
         filter(j != k) %>%
         filter(j != i) %>%
         filter(k != i) %>%
         filter(j < k)
       
+      # filling in the tensor
       for(cur_row in 1:nrow(inds)) {
         cur_inds <- inds[cur_row,]
         B[i, cur_inds$j, cur_inds$k] <- opt_vals[i, cur_row]
@@ -124,7 +126,7 @@ GetFeasibleB <- function(abd, pars) {
     }
     
     B <- matrix(as.vector(B), nrow = S, ncol = S^2)
-    B <- B * total_B
+    B <- B * total_B # multiplying by the appropriate constraint values
     return(B)
   })
   return(B)
@@ -141,6 +143,8 @@ GetNonEqualFeasibleB <- function(abd, pars) {
     B <- array(0, c(S, S, S))
     for(i in 1:S) {
       
+      # preventing the HOI terms with repeated indices
+      # from being included
       inds <- crossing(j = 1:S, k = 1:S) %>%
         filter(j != k) %>%
         filter(j != i) %>%
@@ -154,6 +158,7 @@ GetNonEqualFeasibleB <- function(abd, pars) {
       
     }
     
+    # fills in the tensor using the appropriate multiplied abundances
     outer_abds <- as.vector(outer(abd, abd))
     outer_mat <- diag(1 / outer_abds, nrow = S^2, ncol = S^2)
     B <- matrix(as.vector(B), nrow = S, ncol = S^2) %*% outer_mat
@@ -163,7 +168,7 @@ GetNonEqualFeasibleB <- function(abd, pars) {
   return(B)
 }
 
-# returns a higher-order interaction matrix that enforces feasibility but ensure the B entries are equal across rows
+# returns a higher-order interaction matrix that enforces feasibility and ensures the B entries are equal across rows
 GetEqualAcrossRowsFeasibleB <- function(abd, pars) {
   B <- with(pars, {
     total_B <- r - A %*% abd
@@ -173,6 +178,8 @@ GetEqualAcrossRowsFeasibleB <- function(abd, pars) {
     B <- array(0, c(S, S, S))
     for(i in 1:S) {
       
+      # preventing the HOI terms with repeated indices
+      # from being included
       inds <- crossing(j = 1:S, k = 1:S) %>%
         filter(j != k) %>%
         filter(j != i) %>%
@@ -186,6 +193,7 @@ GetEqualAcrossRowsFeasibleB <- function(abd, pars) {
       
     }
     
+    # fills in the tensor while maintaing equality within each row
     outer_abds <- as.vector(outer(abd, abd))
     outer_mat <- diag(outer_abds, nrow = S^2, ncol = S^2)
     B <- matrix(as.vector(B), nrow = S, ncol = S^2)
@@ -245,6 +253,7 @@ GetAbdVarianceFeasibleB <- function(abd, pars) {
       
     }
     
+    # fills in the B tensor with the only differences coming form the abundance values
     outer_abds <- as.vector(outer(abd, abd))
     outer_mat <- diag(1 / outer_abds, nrow = S^2, ncol = S^2)
     B <- matrix(as.vector(B), nrow = S, ncol = S^2) %*% outer_mat
@@ -282,6 +291,7 @@ BuildJacobian <- function(eq_abd, pars) {
 }
 
 # returns the abundances realized in simulations of the dynamics
+# as well as the stability of the resulting state
 GetAbds <- function(pars, ini_state, end_time, zero_cutoff) {
   out_abds <- IntegrateDynamics(inistate = ini_state,
                                 pars = pars,
@@ -466,9 +476,6 @@ BuildAbbJacobian <- function(abd, pars, p) {
   row_sum_mat <- row_sum_mat / (pars$S - 1)
   Btilde <- Btilde + row_sum_mat
   
-  #print(0.5 * rowSums(Btilde))
-  #print(pars$r - rowSums(pars$A))
-  
   J <- - abd * (pars$A + Btilde)
   
   return(J)
@@ -504,19 +511,11 @@ PlotEigs <- function(A, B, J, Title = "Spectrum") {
     geom_point(color = "black", alpha = 0.5, size = 2) +
     theme_bw() +
     facet_wrap(~Label) +
-    theme(#axis.line=element_blank(),
-      #axis.text.x=element_blank(),
-      #axis.text.y=element_blank(),
-      #axis.ticks=element_blank(),
-      #axis.title.x=element_blank(),
-      #axis.title.y=element_blank(),
-      #panel.grid = element_blank(),
+    theme(
       panel.spacing = unit(4, "lines"),
       legend.position="none",
       panel.background=element_blank(),
-      #panel.border=element_blank(),
       strip.background = element_blank(),
-      #strip.text.x = element_blank(),
       panel.grid.major=element_blank(),
       panel.grid.minor=element_blank(),
       text = element_text(size=15),

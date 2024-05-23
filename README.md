@@ -6,6 +6,8 @@ The ThreeSpecies folder has three files. The file ThreeSpeciesFunctions.R has a 
 
 In the DiverseCommunities directory, there are subdirectories called simulating and plotting as well as an additional file of helper functions specific to diverse communities. Scripts in the simulating directory simulate different parameter combinations and record the data they produce in the simdata folder. Scripts in the plotting directory read in data from the simdata directory and create plots. Below is a list of which figures in the main text or supplement are created by each of the plotting files. The corresponding figure that each file creates is also written in the comments at the beginning of the script itself. Files are named with the corresponding main text figure number. So, for example, 1_ExampleDynamics.R creates part of Figure 1 in the main text. Files that create supplementary figures begin with "SI_". The simulating files are also listed with the corresponding main text figure they generate data for or begin with an "SI_" if they simulate for a supplementary figure.
 
+The basic workflow for simulations is as follows. First, we generate a dataframe with all of the parameter combinations we are interested. Then, we loop over all of these parameters and parameterize the equilibria and Jacobian. Last, we write all of the parameter and stability data out to a csv file. The plotting scripts read in the corresponding stability data, summarize it by computing the probability that the equilibrium is stable and then graph the results behavior.
+
 MAIN TEXT
 
 Plotting Scripts
